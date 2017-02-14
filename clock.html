@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+			#canvas{
+				border: 1px solid red;
+			}
+        </style>
+    </head>
+    <body>
+
+    <canvas id="canvas" width="650" height="620"></canvas>
+    <script>
+
+    var canvas=document.getElementById("canvas");
+    var ctx=canvas.getContext("2d");
+
+    // 圆盘
+    // yuan(x轴坐标,y轴坐标,半径,刻度的长度，刻度数量)
+    function yuan(x,y,radius,length,num){
+    	// 保存初始化状态
+    	ctx.save();
+    	// 开辟新状态
+    	ctx.beginPath();
+    	// 线宽
+    	ctx.lineWidth=10;
+    	// 画圆
+    	ctx.arc(x, y, radius, 0, 2*Math.PI);
+    	// 圆的颜色
+    	ctx.strokeStyle="darkviolet";
+    	// 描绘圆
+    	ctx.stroke();
+    	// 调出初始状态
+		ctx.restore();
+
+		// 绘制刻度
+		kedu(x,y,radius,length,num);
+    };
+    
+    
+    // 线段
+    // line(起点X，起点Y，终点X，终点Y，颜色)
+    function line(startX,startY,endX,endY,color){
+    	// 开辟新状态
+    	ctx.beginPath();
+    	// 起点
+    	ctx.moveTo(startX, startY);
+    	// 终点
+    	ctx.lineTo(endX, endY);
+    	// 颜色：传颜色 || 不传颜色
+    	color=color || "black";
+ 		// 颜色
+    	ctx.strokeStyle=color;
+    	// 描绘
+    	ctx.stroke();
+    }
+
+    // 弧度  及 坐标
+    // hudu(x轴坐标,y轴坐标,半径,刻度的长度,弧度)
+    function hudu(x,y,radius,length,radian){
+    	// 圆上的坐标
+    	var b1=Math.cos(radian)*radius;
+    	var h1=Math.sin(radian)*radius;
+    	// 园内坐标
+    	var b2=Math.cos(radian)*(radius-length);
+    	var h2=Math.sin(radian)*(radius-length);
+    	// 创建对象存储坐标
+    	var obj={};
+    	obj.x1=x+b1;
+    	obj.y1=y+h1;
+    	obj.x2=x+b2;
+    	obj.y2=y+h2;
+    	// 返回对象
+    	return obj;
+    }
+
+    // 画线
+    // hualine(x轴坐标,y轴坐标,半径,刻度的长度,弧度,颜色)
+    function hualine(x,y,radius,length,radian,color){
+    	// 创建 hudu() 函数的实例
+    	// 通过 hudu() 中的计算来确定 线段终点的坐标
+    	// hudu(x轴坐标,y轴坐标,半径,刻度的长度，弧度)
+    	var m=new hudu(x,y,radius,length,radian);
+    	// console.log(m);
+    	// 刻度线
+    	// line(起点X，起点Y，终点X，终点Y)
+    	line(m.x1,m.y1,m.x2,m.y2);
+    }
+
+    // 文字
+    // Text(文字,起点x轴坐标,起点y轴坐标)
+    function Text(text,x,y){
+    	// 开辟新状态，能够继承上一状态
+    	ctx.beginPath();
+    	// 字体样式
+        ctx.font="18px 宋体";
+        // 水平对齐
+        ctx.textAlign="center";
+        // 垂直对齐
+        ctx.textBaseline="middle";
+        // 填充字体
+    	ctx.fillText(text, x, y);
+    }
+
+    // 写字
+    // writeText(文字,x轴坐标,y轴坐标,半径,刻度的长度,弧度)
+    function writeText(text,x,y,radius,length,radian){
+    	// 创建 hudu() 函数的实例
+    	// 通过 hudu() 中的计算来确定 线段终点的坐标
+    	// hudu(x轴坐标,y轴坐标,半径,刻度的长度，弧度)
+    	var m=new hudu(x,y,radius,length,radian);
+    	// 绘制文字函数
+    	// Text(文字,起点x轴坐标,起点y轴坐标)
+    	Text(text, m.x2, m.y2);
+    }
+
+
+
+    // 刻度
+    // 全是继承自 yuan(x,y,radius,length,num)
+    // kedu(x轴坐标,y轴坐标,半径,刻度的长度，刻度数量)
+    function kedu(x,y,radius,length,num){
+    	// 一个刻度所占据的弧度
+    	radian=2*Math.PI/num;
+    	// 循环 数量 绘制  刻度线及数字
+    	for(var i=0;i<num;i++){
+    		// 找到每一个刻度的弧度
+    		var smallRadian=radian*i;
+    		// 如果这个刻度是第五个
+    		if(i%5==0){
+    			// 线宽
+    			ctx.lineWidth=5;
+    			// 绘制刻度线
+    			// hualine((x轴坐标,y轴坐标,半径,刻度的长度要比其他刻度长一些,每一个刻度的弧度)
+    			hualine(x,y,radius,length+5,smallRadian);
+    			// 绘制文字
+    			// writeText(文字,x轴坐标,y轴坐标,半径,刻度长度的基础上增加长度不能与刻度重叠,绘制的起始弧度)；
+    			writeText(i/5+1,x,y,radius,length+15,smallRadian-Math.PI/3);
+    		}else{
+    			ctx.lineWidth=2;
+    			hualine(x,y,radius,length,smallRadian);
+    		}
+    		
+    	}
+    	// 调用  绘制指针 函数
+    	// huizhizhizhen(x轴坐标,y轴坐标,半径,刻度的长度)
+    	huizhizhizhen(x,y,radius,length);
+    }
+
+    // 指针
+    // zhizhen(x轴坐标,y轴坐标,半径,刻度的长度，从huizhizhizhen()函数中获取的弧度，从huizhizhizhen()函数中获取的颜色)
+    // 
+    function zhizhen(x,y,radius,length,radian,color){
+    	// 创建 hudu() 函数的实例
+    	// 通过 hudu() 中的计算来确定 线段终点的坐标
+    	// hudu(x轴坐标,y轴坐标,半径,刻度的长度，从zhizhen()函数中获取的弧度)
+    	var m=new hudu(x,y,radius,length,radian);
+    	// 画线
+    	// line(起点：x轴坐标,起点：y轴坐标, 计算后终点坐标，来自hudu()的实例：m.x2, m.y2, 颜色：color);
+    	line(x,y, m.x2, m.y2,color);
+    }
+
+
+    // 绘制指针
+    // huizhizhizhen(x轴坐标,y轴坐标,半径,刻度的长度)
+    function huizhizhizhen(x,y,radius,length){
+    	// 当前时间对象
+    	var data=new Date();
+    	// 每一格的弧度
+    	var changehu=Math.PI/30;
+    	// *******************
+    	// 时针每一格的弧度
+    	var shihu=Math.PI/6;
+
+    	// 获取当前小时
+    	var Hours=data.getHours();
+    	
+    	// console.log(Hours);
+    	// 获取当前分钟
+    	var Minutes=data.getMinutes();
+    	// 获取当前秒钟
+    	var Second=data.getSeconds();
+    	// 时针
+    	// 调用 绘画指针的方法
+    	// 时针的弧度计算：从刻度为12开始弧度 加上 时针当前时间所走的弧度shihu*(Hours%12) 加上 分针每走一度的弧度
+    	// ******
+    	// zhizhen(x轴坐标,y轴坐标,刻度的长度,****时针的长度：length-100****,时针的弧度计算,颜色)
+    	zhizhen(x,y,length,length-100,-Math.PI/2+shihu*(Hours%12)+Minutes/12*changehu,"fuchsia");
+
+    	
+    	// -Math.PI/2-changehu*Hours+Minutes/12*changehu
+
+    	// 分针
+    	zhizhen(x,y,length,length-120,-Math.PI/2+changehu*Minutes,"blue");
+    	// 秒针
+    	zhizhen(x,y,length,length-150,-Math.PI/2+changehu*Second,"red");	
+    }
+
+    // 计时器
+    /*
+     *yuan(x轴坐标,y轴坐标,半径,刻度的长度，刻度数量)
+	 * 每一秒钟调用重新画一次
+     */ 
+	var timer=setInterval(function(){
+		// 清空画布
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// 画时钟
+		yuan(300,250,200,20,60);
+	}, 1000);
+
+
+
+	// 计时器{
+	// 	圆盘{
+	// 		刻度{
+	// 			画线{
+	// 				计算弧度的实例{}
+	// 				线段{}
+	// 			}；
+	// 			写字{
+	// 				计算弧度的实例{}
+	// 				写字{}
+	// 			}；
+	// 			绘制指针{
+	// 				指针{
+	// 					计算弧度的实例{}
+	// 					线段{}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+    </script>
+    </body>
+</html>
